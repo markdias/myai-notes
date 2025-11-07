@@ -47,6 +47,9 @@ class NotesStorage {
             title: title || 'Untitled Note',
             content: content,
             expandedContent: expandedContent,
+            isPublished: false,
+            publishedAt: null,
+            publishedContent: '',
             createdAt: new Date().toISOString(),
             updatedAt: new Date().toISOString()
         };

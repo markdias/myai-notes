@@ -16,13 +16,16 @@
                 <button id="themeToggle" class="icon-button" title="Toggle theme">
                     <span class="theme-icon">🌙</span>
                 </button>
+                <button id="publishedNotesButton" class="icon-button" title="View published notes">
+                    <span>📰</span>
+                </button>
                 <button id="settingsButton" class="icon-button" title="Settings">
                     <span>⚙️</span>
                 </button>
             </div>
         </header>
 
-        <div class="main-content">
+        <div class="main-content" id="workspaceContainer">
             <!-- Sidebar -->
             <aside class="sidebar">
                 <div class="sidebar-header">
@@ -62,27 +65,47 @@
                         </div>
                     </div>
 
-                    <div class="note-body">
+                    <div class="note-body" id="noteBody">
                         <div class="input-section">
-                            <label for="noteInput">Your Note:</label>
-                            <textarea
-                                id="noteInput"
-                                class="note-textarea"
-                                placeholder="Write a short note here..."
-                                rows="8"
-                            ></textarea>
-                            <button id="expandButton" class="btn-primary btn-expand">
-                                <span class="button-text">✨ Expand with AI</span>
-                                <span class="spinner" style="display: none;">⏳</span>
-                            </button>
+                            <div id="noteEditorWrapper" class="note-editor-wrapper">
+                                <label for="noteInput">Your Note:</label>
+                                <textarea
+                                    id="noteInput"
+                                    class="note-textarea"
+                                    placeholder="Write a short note here..."
+                                    rows="8"
+                                ></textarea>
+                                <button id="expandButton" class="btn-primary btn-expand">
+                                    <span class="button-text">✨ Expand with AI</span>
+                                    <span class="spinner" style="display: none;">⏳</span>
+                                </button>
+                            </div>
+                            <div id="noteDisplayContainer" class="note-display-container" style="display: none;">
+                                <div class="note-display-header">
+                                    <span class="note-display-title">Note Content</span>
+                                    <button id="editNoteButton" class="btn-secondary btn-small">✏️ Edit</button>
+                                </div>
+                                <div id="noteDisplay" class="note-display" role="region" aria-live="polite"></div>
+                            </div>
                         </div>
 
                         <div class="output-section">
                             <div class="output-header">
                                 <label>Expanded Note:</label>
-                                <button id="copyButton" class="btn-secondary btn-small" title="Copy to clipboard">
-                                    📋 Copy
-                                </button>
+                                <div class="output-actions">
+                                    <button id="copyButton" class="btn-secondary btn-small" title="Copy to clipboard">
+                                        📋 Copy
+                                    </button>
+                                    <button id="toggleExpandedButton" class="btn-secondary btn-small" title="Hide expanded note" style="display: none;">
+                                        🙈 Hide
+                                    </button>
+                                    <button id="regenerateSelectionButton" class="btn-secondary btn-small" title="Regenerate selected section" disabled>
+                                        🔁 Regenerate Selection
+                                    </button>
+                                    <button id="setNoteButton" class="btn-secondary btn-small" title="Replace the note with the generated text" style="display: none;">
+                                        📌 Set as Note
+                                    </button>
+                                </div>
                             </div>
                             <div id="expandedNote" class="expanded-note">
                                 <!-- Expanded content will appear here -->
@@ -90,18 +113,35 @@
                         </div>
                     </div>
 
-                    <div class="note-footer">
+                    <div class="note-footer" id="noteFooter">
                         <button id="saveButton" class="btn-primary">💾 Save</button>
+                        <button id="publishButton" class="btn-secondary">📢 Publish Note</button>
                         <button id="exportButton" class="btn-secondary">📄 Export as .txt</button>
                         <div class="status-message" id="statusMessage"></div>
                     </div>
                 </div>
             </main>
         </div>
+        <section id="publishedViewContainer" class="published-view" hidden aria-hidden="true">
+            <header class="published-view-header">
+                <button id="publishedViewBackButton" class="btn-secondary btn-small">⬅️ Back</button>
+                <h2 id="publishedViewTitle" class="published-view-title">Published Note</h2>
+            </header>
+            <article id="publishedViewContent" class="published-view-content expanded-note" role="region" aria-live="polite"></article>
+        </section>
     </div>
 
     <!-- Hidden file input for JSON import -->
     <input type="file" id="importFileInput" accept=".json" style="display: none;">
+
+    <div id="publishedPanelBackdrop" class="published-panel-backdrop" hidden></div>
+    <section id="publishedNotesPanel" class="published-notes-panel" aria-hidden="true" hidden>
+        <div class="published-notes-header">
+            <h2>Published Notes</h2>
+            <button id="closePublishedNotes" class="icon-button" title="Close published notes view">✖️</button>
+        </div>
+        <div id="publishedNotesList" class="published-notes-list"></div>
+    </section>
 
     <script src="js/storage.js"></script>
     <script src="js/theme.js"></script>

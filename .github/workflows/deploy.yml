@@ -24,6 +24,30 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
+      - name: Check for existing gh-pages branch
+        id: gh-pages-branch
+        run: |
+          if git ls-remote --exit-code origin gh-pages > /dev/null 2>&1; then
+            echo "exists=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "exists=false" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Checkout gh-pages branch for previews
+        if: steps.gh-pages-branch.outputs.exists == 'true'
+        uses: actions/checkout@v4
+        with:
+          ref: gh-pages
+          path: gh-pages
+
+      - name: Restore PR preview directories
+        if: steps.gh-pages-branch.outputs.exists == 'true'
+        run: |
+          if [ -d gh-pages/pr ]; then
+            mkdir -p pr
+            rsync -av gh-pages/pr/ pr/
+          fi
+
       - name: Setup Pages
         uses: actions/configure-pages@v4
 
