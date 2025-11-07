@@ -275,6 +275,10 @@ async function expandWithClaude(noteText) {
     const model = localStorage.getItem('myai_claude_model') || 'claude-3-5-sonnet-20241022';
     const temperature = parseFloat(localStorage.getItem('myai_temperature') || '0.7');
 
+    if (!apiKey) {
+        throw new Error('Claude API key is missing. Please add it on the Settings page before trying again.');
+    }
+
     try {
         const response = await fetch('https://api.anthropic.com/v1/messages', {
             method: 'POST',
@@ -321,8 +325,18 @@ async function expandWithClaude(noteText) {
     } catch (error) {
         // Handle network errors or other fetch failures
         if (error instanceof TypeError) {
-            // TypeError usually indicates network connectivity issues
-            throw new Error('Network error: Unable to connect to Claude API. Please check your internet connection and verify that https://api.anthropic.com is accessible.');
+            const offline = typeof navigator !== 'undefined' && navigator && navigator.onLine === false;
+            const servedFromFile = typeof window !== 'undefined' && window.location && window.location.protocol === 'file:';
+
+            let errorMessage = 'Network error: Unable to connect to Claude API. Please check your internet connection and verify that https://api.anthropic.com is accessible.';
+
+            if (offline) {
+                errorMessage = 'You appear to be offline. Please reconnect to the internet and try again.';
+            } else if (servedFromFile) {
+                errorMessage += ' This often happens when the app is opened directly from the file system. Run the app through a local web server (see the README) so that the browser allows secure API requests.';
+            }
+
+            throw new Error(errorMessage);
         }
         // Re-throw API errors or other errors as-is
         throw error;

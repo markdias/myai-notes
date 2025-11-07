@@ -1,11 +1,11 @@
 # MyAI Notes
 
-A lightweight, privacy-focused note-taking web application that uses OpenAI's API to expand your short notes into detailed, well-structured text. All data is stored locally in your browser, ensuring complete privacy and control.
+A lightweight, privacy-focused note-taking web application that uses OpenAI's and Anthropic's APIs to expand your short notes into detailed, well-structured text. All data is stored locally in your browser, ensuring complete privacy and control.
 
 ## Features
 
 ### Core Features
-- **AI-Powered Expansion**: Transform short notes into detailed content using OpenAI's GPT models
+- **AI-Powered Expansion**: Transform short notes into detailed content using OpenAI GPT or Anthropic Claude models
 - **Local Storage**: All notes are stored in your browser's localStorage - no server, no cloud
 - **Markdown Rendering**: Expanded notes are rendered with beautiful Markdown formatting
 - **Auto-Save**: Notes are automatically saved as you type
@@ -18,7 +18,7 @@ A lightweight, privacy-focused note-taking web application that uses OpenAI's AP
 - **Responsive**: Works on desktop and mobile devices
 
 ### Customization
-- **Model Selection**: Choose from GPT-4o, GPT-4o-mini, GPT-4 Turbo, or GPT-3.5 Turbo
+- **Model Selection**: Choose from GPT-4o, GPT-4o-mini, GPT-4 Turbo, GPT-3.5 Turbo, or Claude 3.x models
 - **Temperature Control**: Adjust creativity level (0-2) for AI responses
 - **Secure API Key Storage**: Your OpenAI API key is stored locally and never sent anywhere except OpenAI
 
@@ -27,6 +27,7 @@ A lightweight, privacy-focused note-taking web application that uses OpenAI's AP
 ### Prerequisites
 - A modern web browser (Chrome, Firefox, Safari, Edge)
 - An OpenAI API key (get one at [OpenAI Platform](https://platform.openai.com/api-keys))
+- (Optional) An Anthropic Claude API key (get one at [Anthropic Console](https://console.anthropic.com/))
 
 ### Installation
 
@@ -45,7 +46,7 @@ A lightweight, privacy-focused note-taking web application that uses OpenAI's AP
    cd myai-notes
    ```
 
-2. Open `index.html` in your web browser, or serve with a local server:
+2. **Serve the app through a local web server** (required for Claude requests and recommended for OpenAI too):
    ```bash
    # Using Python 3
    python -m http.server 8000
@@ -58,14 +59,19 @@ A lightweight, privacy-focused note-taking web application that uses OpenAI's AP
 
 ### Configuration
 
-1. **Set Your API Key**:
+1. **Set Your OpenAI API Key**:
    - Click the Settings button (⚙️) in the top right
    - Enter your OpenAI API key (starts with `sk-`)
    - Click "Save Key"
    - Your key is stored locally and securely in your browser
 
-2. **Configure Model Settings** (Optional):
-   - Choose your preferred OpenAI model
+2. **Set Your Claude API Key (Optional)**:
+   - Toggle **Enable Claude (Anthropic)** in Settings
+   - Enter your Claude API key (starts with `sk-ant-`)
+   - Click "Save Key"
+
+3. **Configure Model Settings** (Optional):
+   - Choose your preferred model (OpenAI or Claude)
    - Adjust the temperature (creativity) slider
    - Click "Save Model Settings"
 
@@ -117,7 +123,8 @@ myai-notes/
 │   └── theme.js           # Dark/light mode toggle
 ├── .github/
 │   └── workflows/
-│       └── deploy.yml     # GitHub Actions deployment config
+│       ├── deploy.yml                 # GitHub Pages deployment config
+│       └── pr-preview-artifact.yml    # Downloadable preview build for pull requests
 └── README.md              # This file
 ```
 
@@ -174,10 +181,20 @@ Check [OpenAI Pricing](https://openai.com/api/pricing/) for current rates.
 - Make sure it starts with `sk-`
 - Verify your key is valid at [OpenAI Platform](https://platform.openai.com/api-keys)
 
+### "Claude API key is missing"
+- Toggle **Enable Claude (Anthropic)** in Settings
+- Add your Claude key (should start with `sk-ant-`)
+- Click **Save Key** and try again
+
 ### API Errors
 - **401 Unauthorized**: Invalid API key
 - **429 Rate Limit**: Too many requests, wait and try again
 - **500 Server Error**: OpenAI service issue, try again later
+
+### Network Errors When Calling Claude
+- Ensure you are connected to the internet (the app will warn if you are offline)
+- Make sure you are serving the app from `http://` or `https://` (opening `index.html` directly via `file://` prevents secure API calls)
+- Verify that your firewall or browser settings allow outbound HTTPS requests to `https://api.anthropic.com`
 
 ### Notes Not Saving
 - Check if localStorage is enabled in your browser
@@ -220,7 +237,7 @@ This project is open source and available under the [MIT License](LICENSE).
 
 - Built with vanilla JavaScript for simplicity and performance
 - Markdown rendering by [marked.js](https://marked.js.org/)
-- Powered by [OpenAI API](https://openai.com/api/)
+- Powered by [OpenAI API](https://openai.com/api/) and [Anthropic Claude API](https://www.anthropic.com/)
 
 ## Support
 
