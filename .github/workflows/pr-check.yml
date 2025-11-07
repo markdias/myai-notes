@@ -1,0 +1,101 @@
+name: PR Build Check
+
+on:
+  pull_request:
+    branches: ['main']
+  push:
+    branches: ['claude/**']
+
+jobs:
+  build-check:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Install validation tools
+        run: |
+          npm install -g html-validate
+          npm install -g eslint
+
+      - name: Validate HTML files
+        run: |
+          echo "Validating HTML files..."
+          for file in *.html; do
+            if [ -f "$file" ]; then
+              echo "Checking $file..."
+              # Basic HTML validation - check for basic structure
+              if ! grep -q "<!DOCTYPE html>" "$file"; then
+                echo "Error: $file missing DOCTYPE declaration"
+                exit 1
+              fi
+              if ! grep -q "<html" "$file"; then
+                echo "Error: $file missing html tag"
+                exit 1
+              fi
+              echo "✓ $file is valid"
+            fi
+          done
+
+      - name: Check JavaScript syntax
+        run: |
+          echo "Checking JavaScript syntax..."
+          for file in js/*.js; do
+            if [ -f "$file" ]; then
+              echo "Checking $file..."
+              node --check "$file"
+              echo "✓ $file syntax is valid"
+            fi
+          done
+
+      - name: Verify required files exist
+        run: |
+          echo "Verifying required files..."
+          required_files=(
+            "index.html"
+            "settings.html"
+            "js/main.js"
+            "js/storage.js"
+            "js/theme.js"
+            "css/style.css"
+          )
+          for file in "${required_files[@]}"; do
+            if [ ! -f "$file" ]; then
+              echo "Error: Required file $file not found"
+              exit 1
+            fi
+            echo "✓ $file exists"
+          done
+
+      - name: Test static site can be served
+        run: |
+          echo "Testing if site can be served..."
+          npx --yes http-server . -p 8080 > /dev/null 2>&1 &
+          SERVER_PID=$!
+          sleep 3
+
+          # Test if server is responding
+          if curl -f http://localhost:8080/ > /dev/null 2>&1; then
+            echo "✓ Site is serving correctly"
+          else
+            echo "Error: Failed to serve site"
+            kill $SERVER_PID
+            exit 1
+          fi
+
+          kill $SERVER_PID
+
+      - name: Build summary
+        run: |
+          echo "✅ All checks passed!"
+          echo "- HTML files validated"
+          echo "- JavaScript syntax checked"
+          echo "- Required files verified"
+          echo "- Static site can be served"
+          echo ""
+          echo "Ready to merge! 🚀"
