@@ -146,15 +146,9 @@ function showNoteEditor() {
     noteContent.style.display = 'flex';
 }
 
-// Expand note using OpenAI API
+// Expand note using AI (OpenAI or Claude)
 async function expandNote() {
     if (isLoading) return;
-
-    const apiKey = localStorage.getItem('myai_api_key');
-    if (!apiKey) {
-        showStatus('Please set your OpenAI API key in Settings.', 'error');
-        return;
-    }
 
     const noteText = noteInput.value.trim();
     if (!noteText) {
@@ -162,46 +156,36 @@ async function expandNote() {
         return;
     }
 
-    // Get model settings
-    const model = localStorage.getItem('myai_model') || 'gpt-4o-mini';
-    const temperature = parseFloat(localStorage.getItem('myai_temperature') || '0.7');
+    // Check which providers are enabled
+    const openaiEnabled = localStorage.getItem('myai_openai_enabled') !== 'false';
+    const claudeEnabled = localStorage.getItem('myai_claude_enabled') === 'true';
+
+    // Determine which provider to use (prioritize Claude if both are enabled)
+    let useProvider = null;
+    if (claudeEnabled && localStorage.getItem('myai_claude_api_key')) {
+        useProvider = 'claude';
+    } else if (openaiEnabled && localStorage.getItem('myai_api_key')) {
+        useProvider = 'openai';
+    }
+
+    if (!useProvider) {
+        showStatus('Please set an API key for at least one enabled provider in Settings.', 'error');
+        return;
+    }
 
     isLoading = true;
     expandButton.disabled = true;
     document.querySelector('.button-text').style.display = 'none';
     document.querySelector('.spinner').style.display = 'inline';
-    showStatus('Expanding with AI...', 'info');
+    showStatus(`Expanding with ${useProvider === 'claude' ? 'Claude' : 'OpenAI'}...`, 'info');
 
     try {
-        const response = await fetch('https://api.openai.com/v1/chat/completions', {
-            method: 'POST',
-            headers: {
-                'Authorization': `Bearer ${apiKey}`,
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify({
-                model: model,
-                messages: [
-                    {
-                        role: 'system',
-                        content: 'You are a helpful assistant that expands short notes into detailed, well-structured text. Format your response in Markdown for better readability.'
-                    },
-                    {
-                        role: 'user',
-                        content: `Please expand the following note into a detailed, well-structured text:\n\n${noteText}`
-                    }
-                ],
-                temperature: temperature
-            })
-        });
-
-        if (!response.ok) {
-            const error = await response.json();
-            throw new Error(error.error?.message || `API error: ${response.status}`);
+        let expandedText;
+        if (useProvider === 'claude') {
+            expandedText = await expandWithClaude(noteText);
+        } else {
+            expandedText = await expandWithOpenAI(noteText);
         }
-
-        const data = await response.json();
-        const expandedText = data.choices[0].message.content;
 
         // Render markdown
         renderMarkdown(expandedText);
@@ -224,6 +208,79 @@ async function expandNote() {
         document.querySelector('.button-text').style.display = 'inline';
         document.querySelector('.spinner').style.display = 'none';
     }
+}
+
+// Expand note using OpenAI API
+async function expandWithOpenAI(noteText) {
+    const apiKey = localStorage.getItem('myai_api_key');
+    const model = localStorage.getItem('myai_openai_model') || 'gpt-4o-mini';
+    const temperature = parseFloat(localStorage.getItem('myai_temperature') || '0.7');
+
+    const response = await fetch('https://api.openai.com/v1/chat/completions', {
+        method: 'POST',
+        headers: {
+            'Authorization': `Bearer ${apiKey}`,
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+            model: model,
+            messages: [
+                {
+                    role: 'system',
+                    content: 'You are a helpful assistant that expands short notes into detailed, well-structured text. Format your response in Markdown for better readability.'
+                },
+                {
+                    role: 'user',
+                    content: `Please expand the following note into a detailed, well-structured text:\n\n${noteText}`
+                }
+            ],
+            temperature: temperature
+        })
+    });
+
+    if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.error?.message || `OpenAI API error: ${response.status}`);
+    }
+
+    const data = await response.json();
+    return data.choices[0].message.content;
+}
+
+// Expand note using Claude API
+async function expandWithClaude(noteText) {
+    const apiKey = localStorage.getItem('myai_claude_api_key');
+    const model = localStorage.getItem('myai_claude_model') || 'claude-3-5-sonnet-20241022';
+    const temperature = parseFloat(localStorage.getItem('myai_temperature') || '0.7');
+
+    const response = await fetch('https://api.anthropic.com/v1/messages', {
+        method: 'POST',
+        headers: {
+            'x-api-key': apiKey,
+            'anthropic-version': '2023-06-01',
+            'content-type': 'application/json'
+        },
+        body: JSON.stringify({
+            model: model,
+            max_tokens: 4096,
+            temperature: temperature,
+            system: 'You are a helpful assistant that expands short notes into detailed, well-structured text. Format your response in Markdown for better readability.',
+            messages: [
+                {
+                    role: 'user',
+                    content: `Please expand the following note into a detailed, well-structured text:\n\n${noteText}`
+                }
+            ]
+        })
+    });
+
+    if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.error?.message || `Claude API error: ${response.status}`);
+    }
+
+    const data = await response.json();
+    return data.content[0].text;
 }
 
 // Render markdown content
