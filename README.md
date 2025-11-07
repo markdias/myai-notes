@@ -1,1 +1,1 @@
-# musk-notes
+# myai-notes
