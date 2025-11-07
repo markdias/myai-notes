@@ -69,6 +69,9 @@ A lightweight, privacy-focused note-taking web application that uses OpenAI's an
    - Toggle **Enable Claude (Anthropic)** in Settings
    - Enter your Claude API key (starts with `sk-ant-`)
    - Click "Save Key"
+   - In the Anthropic Console, enable **Browser access** for that key so it can be used from this web app
+
+   > **Note:** The app already sends the `anthropic-dangerous-direct-browser-access: true` header required for in-browser calls, following the [Claude API browser access guide](https://docs.claude.com/en/docs/intro/browser-access). Without the browser access toggle, requests will be blocked and result in a network error.
 
 3. **Configure Model Settings** (Optional):
    - Choose your preferred model (OpenAI or Claude)
@@ -107,6 +110,16 @@ A lightweight, privacy-focused note-taking web application that uses OpenAI's an
 - Click the theme toggle button (🌙/☀️) in the header
 - The app automatically detects your system preference on first load
 - Your theme preference is saved and persists across sessions
+
+### Troubleshooting Claude network errors
+
+If you encounter the message `Network error: Unable to connect to Claude API`, work through the checklist below:
+
+1. **Serve the app via HTTP/HTTPS** – Opening `index.html` directly from disk prevents secure cross-origin requests. Use a local server (`python -m http.server 8000`) or deploy to GitHub Pages.
+2. **Enable browser access for your key** – In the Anthropic Console, visit **Settings → API Keys**, edit the key you saved in MyAI Notes, and toggle on **Browser access**.
+3. **Allow outbound HTTPS** – Ensure your network allows access to `https://api.anthropic.com`. Corporate firewalls or VPNs may require allow-listing this domain.
+
+After applying any changes, refresh the page and try expanding a note again.
 
 ## Project Structure
 

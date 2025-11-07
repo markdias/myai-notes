@@ -285,7 +285,9 @@ async function expandWithClaude(noteText) {
             headers: {
                 'x-api-key': apiKey,
                 'anthropic-version': '2023-06-01',
-                'content-type': 'application/json'
+                'content-type': 'application/json',
+                // Required for browser-based requests per https://docs.claude.com/
+                'anthropic-dangerous-direct-browser-access': 'true'
             },
             body: JSON.stringify({
                 model: model,
@@ -334,6 +336,8 @@ async function expandWithClaude(noteText) {
                 errorMessage = 'You appear to be offline. Please reconnect to the internet and try again.';
             } else if (servedFromFile) {
                 errorMessage += ' This often happens when the app is opened directly from the file system. Run the app through a local web server (see the README) so that the browser allows secure API requests.';
+            } else {
+                errorMessage += ' If you recently enabled Claude access, make sure the "Browser access" option is turned on for your API key in the Anthropic Console.';
             }
 
             throw new Error(errorMessage);
