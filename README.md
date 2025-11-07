@@ -8,6 +8,7 @@ A lightweight, privacy-focused note-taking web application that uses OpenAI's an
 - **AI-Powered Expansion**: Transform short notes into detailed content using OpenAI GPT or Anthropic Claude models
 - **Local Storage**: All notes are stored in your browser's localStorage - no server, no cloud
 - **Markdown Rendering**: Expanded notes are rendered with beautiful Markdown formatting
+- **Persistent Formatting**: Applied AI output keeps its Markdown structure even after reloading the page
 - **Auto-Save**: Notes are automatically saved as you type
 - **Export/Import**: Export individual notes as .txt files or all notes as JSON
 
@@ -91,7 +92,7 @@ A lightweight, privacy-focused note-taking web application that uses OpenAI's an
    - Click the "✨ Expand with AI" button
    - Wait for the AI to process your note
    - The expanded content appears on the right with Markdown formatting
-   - Click "📌 Set as Note" to replace your original text with the generated version (you can always return to editing with the "✏️ Edit" button)
+   - Click "📌 Set as Note" to replace your original text with the generated version (you can always return to editing with the "✏️ Edit" button). Saved notes keep the AI-generated Markdown formatting when you revisit them later.
 
 3. **Save and Export**:
    - Notes are auto-saved as you type

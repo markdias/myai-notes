@@ -140,6 +140,7 @@ function loadNote(noteId) {
         renderMarkdown(note.expandedContent);
     } else {
         expandedNote.innerHTML = '';
+        lastExpandedText = '';
         updateSetNoteButtonVisibility('');
     }
 
@@ -449,7 +450,10 @@ function saveCurrentNote() {
 
     const title = noteTitleInput.value.trim() || 'Untitled Note';
     const content = noteInput.value;
-    const expandedContent = expandedNote.textContent || expandedNote.innerText;
+    const existingNote = notesStorage.getNoteById(currentNoteId);
+    const expandedContent = (lastExpandedText && lastExpandedText.trim())
+        ? lastExpandedText
+        : (existingNote?.expandedContent || '');
 
     notesStorage.updateNote(currentNoteId, {
         title,
