@@ -1,0 +1,127 @@
+name: PR Preview (Downloadable)
+
+on:
+  pull_request:
+    branches: ['main']
+    types: [opened, synchronize, reopened]
+
+permissions:
+  contents: read
+  pull-requests: write
+
+jobs:
+  build-preview:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Create preview package
+        run: |
+          # Create a clean build directory
+          mkdir -p preview-build
+
+          # Copy all necessary files
+          cp -r *.html preview-build/
+          cp -r js preview-build/
+          cp -r css preview-build/
+          cp -r assets preview-build/ 2>/dev/null || true
+
+          # Create a README for the preview
+          cat > preview-build/PREVIEW-README.md << 'EOF'
+          # MyAI Notes - PR Preview
+
+          ## How to Test This Preview
+
+          1. Extract this archive to a directory
+          2. Open `index.html` in your web browser, or
+          3. Run a local server:
+             ```bash
+             # Python 3
+             python -m http.server 8080
+
+             # Python 2
+             python -m SimpleHTTPServer 8080
+
+             # Node.js (npx)
+             npx http-server -p 8080
+
+             # PHP
+             php -S localhost:8080
+             ```
+          4. Open http://localhost:8080 in your browser
+
+          ## Testing Instructions
+
+          - Test all functionality described in the PR
+          - Check both desktop and mobile views
+          - Verify settings and API key management
+          - Test theme switching
+          - Verify note creation and AI features (with API keys)
+          EOF
+
+      - name: Upload preview artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: pr-preview-${{ github.event.pull_request.number }}
+          path: preview-build/
+          retention-days: 30
+
+      - name: Comment on PR with download link
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const prNumber = context.issue.number;
+            const runId = context.runId;
+            const artifactUrl = `https://github.com/${context.repo.owner}/${context.repo.repo}/actions/runs/${runId}`;
+
+            const comments = await github.rest.issues.listComments({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: prNumber,
+            });
+
+            const botComment = comments.data.find(comment =>
+              comment.user.type === 'Bot' &&
+              comment.body.includes('📦 Preview Build Ready')
+            );
+
+            const commentBody = `## 📦 Preview Build Ready
+
+A preview build of this PR is ready for testing!
+
+**[Download Preview Build](${artifactUrl})**
+
+### How to Test:
+1. Click the link above to go to the workflow run
+2. Scroll to the bottom and download the \`pr-preview-${prNumber}\` artifact
+3. Extract the ZIP file
+4. Follow the instructions in \`PREVIEW-README.md\`
+
+### Quick Start:
+\`\`\`bash
+# After extracting the archive
+cd pr-preview-${prNumber}
+python -m http.server 8080
+# Then open http://localhost:8080
+\`\`\`
+
+---
+*Build: [#${runId}](${artifactUrl})*
+*Last updated: ${new Date().toUTCString()}*`;
+
+            if (botComment) {
+              await github.rest.issues.updateComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                comment_id: botComment.id,
+                body: commentBody
+              });
+            } else {
+              await github.rest.issues.createComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: prNumber,
+                body: commentBody
+              });
+            }
