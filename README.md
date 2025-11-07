@@ -18,7 +18,7 @@ A lightweight, privacy-focused note-taking web application that uses OpenAI's an
 - **Dark/Light Mode**: Toggle between themes, with automatic system preference detection
 - **Minimalist Design**: Clean, distraction-free interface focused on productivity
 - **Responsive**: Works on desktop and mobile devices
-- **Published Notes Drawer**: Browse fully formatted notes in a dedicated, distraction-free panel that mirrors the live output
+- **Published Notes Drawer**: Curate selected notes into a dedicated, distraction-free panel that mirrors the published Markdown rendering
 - **Expanded Note Toggle**: Collapse the AI output when you just want to focus on the saved version
 
 ### Customization
@@ -104,6 +104,12 @@ A lightweight, privacy-focused note-taking web application that uses OpenAI's an
    - Click "📄 Export as .txt" to download the current note
    - Click "📋 Copy" to copy the expanded content
 
+### Publishing notes
+
+1. Finish writing or expanding a note so that it contains the Markdown you want to share.
+2. Click "📢 Publish Note" to add it to the Published Notes drawer. If you change the note later, the button switches to "📢 Update Published" so you can refresh the published version, or cancel and choose to unpublish it entirely.
+3. Open the 📰 Published Notes drawer to read the fully formatted version. The drawer only contains notes you have explicitly published.
+
 ### Regenerating a section
 
 1. Highlight the portion of the note you want to update. You can select text directly in the formatted view or click "✏️ Edit" to select it inside the editor.
@@ -116,7 +122,7 @@ A lightweight, privacy-focused note-taking web application that uses OpenAI's an
 - **Switch Notes**: Click any note in the sidebar to view/edit it
 - **Delete Notes**: Click the 🗑️ button to delete the current note
 - **Import/Export All**: Use the Import/Export buttons in the sidebar to backup all notes
-- **Review Published Notes**: Click the 📰 button in the header to open the published notes drawer. It shows every saved note rendered with its Markdown formatting—click any card to jump straight to that note and press `Esc` or the ✖️ button to close the drawer.
+- **Review Published Notes**: Click the 📰 button in the header to open the published notes drawer. Only notes you publish with the 📢 Publish button appear here, rendered with their Markdown formatting—click any card to jump straight to that note and press `Esc` or the ✖️ button to close the drawer.
 
 ### Themes
 

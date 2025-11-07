@@ -14,6 +14,7 @@ const expandButton = document.getElementById('expandButton');
 const expandedNote = document.getElementById('expandedNote');
 const saveButton = document.getElementById('saveButton');
 const exportButton = document.getElementById('exportButton');
+const publishButton = document.getElementById('publishButton');
 const deleteButton = document.getElementById('deleteButton');
 const copyButton = document.getElementById('copyButton');
 const setNoteButton = document.getElementById('setNoteButton');
@@ -58,6 +59,9 @@ function setupEventListeners() {
     newNoteButton.addEventListener('click', createNewNote);
     expandButton.addEventListener('click', expandNote);
     saveButton.addEventListener('click', saveCurrentNote);
+    if (publishButton) {
+        publishButton.addEventListener('click', publishCurrentNote);
+    }
     exportButton.addEventListener('click', exportCurrentNote);
     deleteButton.addEventListener('click', deleteCurrentNote);
     copyButton.addEventListener('click', copyToClipboard);
@@ -129,9 +133,11 @@ function setupEventListeners() {
                 autoSaveNote();
             }
         }, 1000);
+        updatePublishButtonState();
     });
 
     handleSelectionChange();
+    updatePublishButtonState();
 }
 
 // Render notes list in sidebar
@@ -151,12 +157,17 @@ function renderNotesList() {
             noteItem.classList.add('active');
         }
 
-        const preview = note.content.slice(0, 60) || note.expandedContent.slice(0, 60) || 'Empty note';
+        const primaryContent = (note.content || '');
+        const secondaryContent = (note.expandedContent || '');
+        const previewSource = primaryContent || secondaryContent;
+        const preview = previewSource ? previewSource.slice(0, 60) : 'Empty note';
+        const publishedBadge = isNotePublished(note) ? '<span class="note-item-badge" title="Published note">📢</span>' : '';
+        const titleText = escapeHtml(note.title);
         const date = new Date(note.updatedAt).toLocaleDateString();
 
         noteItem.innerHTML = `
-            <div class="note-item-title">${escapeHtml(note.title)}</div>
-            <div class="note-item-preview">${escapeHtml(preview)}${preview.length >= 60 ? '...' : ''}</div>
+            <div class="note-item-title">${titleText}${publishedBadge}</div>
+            <div class="note-item-preview">${escapeHtml(preview)}${previewSource && previewSource.length >= 60 ? '...' : ''}</div>
             <div class="note-item-date">${date}</div>
         `;
 
@@ -208,6 +219,7 @@ function loadNote(noteId) {
     renderNotesList();
     clearStatus();
     handleSelectionChange();
+    updatePublishButtonState(note);
 }
 
 // Show welcome screen
@@ -215,6 +227,7 @@ function showWelcomeScreen() {
     welcomeScreen.style.display = 'flex';
     noteContent.style.display = 'none';
     currentNoteId = null;
+    updatePublishButtonState();
 }
 
 // Show note editor
@@ -222,6 +235,7 @@ function showNoteEditor() {
     welcomeScreen.style.display = 'none';
     noteContent.style.display = 'flex';
     showManualNoteEditor();
+    updatePublishButtonState();
 }
 
 // Expand note using AI (OpenAI or Claude)
@@ -318,6 +332,7 @@ function renderMarkdown(text) {
     setExpandedNoteHidden(false);
     updateSetNoteButtonVisibility(text);
     updateToggleExpandedButtonVisibility(text);
+    updatePublishButtonState();
 }
 
 function updateSetNoteButtonVisibility(text) {
@@ -344,6 +359,7 @@ function showGeneratedNoteDisplay(text) {
     noteEditorWrapper.style.display = 'none';
     noteDisplayContainer.style.display = 'flex';
     handleSelectionChange();
+    updatePublishButtonState();
 }
 
 function showManualNoteEditor(focus = false) {
@@ -357,6 +373,7 @@ function showManualNoteEditor(focus = false) {
     }
 
     handleSelectionChange();
+    updatePublishButtonState();
 }
 
 function applyExpandedTextToNote() {
@@ -373,14 +390,114 @@ function applyExpandedTextToNote() {
     updateToggleExpandedButtonVisibility(lastExpandedText);
 
     if (currentNoteId) {
-        notesStorage.updateNote(currentNoteId, {
+        const updatedNote = notesStorage.updateNote(currentNoteId, {
             content: lastExpandedText,
             expandedContent: lastExpandedText
         });
         renderNotesList();
+        updatePublishButtonState(updatedNote);
+    } else {
+        updatePublishButtonState();
     }
 
     showStatus('Generated text applied to the note.', 'success');
+}
+
+function publishCurrentNote() {
+    if (!currentNoteId || !publishButton) {
+        showStatus('Select or create a note before publishing.', 'error');
+        return;
+    }
+
+    const note = notesStorage.getNoteById(currentNoteId);
+    if (!note) {
+        showStatus('Unable to locate the current note.', 'error');
+        return;
+    }
+
+    const expandedDraft = (expandedNote?.dataset?.raw || '').trim();
+    const manualDraft = (noteInput?.value || '').trim();
+    const storedExpanded = (note.expandedContent && note.expandedContent.trim()) || '';
+    const storedContent = (note.content || '').trim();
+    const publishSource = expandedDraft || manualDraft || storedExpanded || storedContent || '';
+
+    if (!publishSource.trim()) {
+        showStatus('There is no content to publish yet. Save or expand your note first.', 'error');
+        updatePublishButtonState(note);
+        return;
+    }
+
+    const alreadyPublished = isNotePublished(note);
+
+    if (alreadyPublished) {
+        const wantsUpdate = window.confirm('Update the published version with the latest content? Click "Cancel" to manage publication instead.');
+        if (!wantsUpdate) {
+            const wantsUnpublish = window.confirm('Would you like to unpublish this note? It will disappear from the Published Notes view.');
+            if (wantsUnpublish) {
+                const updated = notesStorage.updateNote(currentNoteId, {
+                    isPublished: false,
+                    publishedAt: null,
+                    publishedContent: ''
+                });
+                renderNotesList();
+                refreshPublishedNotesIfOpen();
+                updatePublishButtonState(updated);
+                showStatus('Note unpublished.', 'info');
+            }
+            return;
+        }
+    }
+
+    const updatePayload = {
+        isPublished: true,
+        publishedAt: new Date().toISOString(),
+        publishedContent: publishSource
+    };
+
+    if (manualDraft && manualDraft !== storedContent) {
+        updatePayload.content = noteInput.value;
+    }
+
+    if (expandedDraft && expandedDraft !== storedExpanded) {
+        updatePayload.expandedContent = expandedDraft;
+    }
+
+    const updatedNote = notesStorage.updateNote(currentNoteId, updatePayload);
+
+    renderNotesList();
+    refreshPublishedNotesIfOpen();
+    updatePublishButtonState(updatedNote);
+
+    showStatus(alreadyPublished ? 'Published note updated.' : 'Note published!', 'success');
+}
+
+function updatePublishButtonState(note = null) {
+    if (!publishButton) return;
+
+    const activeNote = note || (currentNoteId ? notesStorage.getNoteById(currentNoteId) : null);
+    const isPublished = isNotePublished(activeNote);
+    const draftText = (expandedNote?.dataset?.raw && expandedNote.dataset.raw.trim())
+        || (noteInput?.value || '').trim()
+        || (activeNote?.content || '').trim();
+
+    const hasNoteSelected = Boolean(currentNoteId && activeNote);
+    publishButton.disabled = !hasNoteSelected || !draftText;
+    publishButton.textContent = isPublished ? '📢 Update Published' : '📢 Publish Note';
+    publishButton.title = publishButton.disabled
+        ? 'Write or select a note to publish it.'
+        : (isPublished
+            ? 'Update or unpublish this note from the Published drawer.'
+            : 'Publish this note to the Published drawer.');
+    publishButton.setAttribute('aria-pressed', isPublished ? 'true' : 'false');
+    publishButton.dataset.state = isPublished ? 'published' : 'draft';
+}
+
+function isNotePublished(note) {
+    if (!note) return false;
+    if (typeof note.isPublished === 'boolean') {
+        return note.isPublished;
+    }
+    return Boolean(note.publishedAt);
 }
 
 async function regenerateSelection() {
@@ -440,11 +557,14 @@ async function regenerateSelection() {
         updateToggleExpandedButtonVisibility(newContent);
 
         if (currentNoteId) {
-            notesStorage.updateNote(currentNoteId, {
+            const updatedNote = notesStorage.updateNote(currentNoteId, {
                 content: newContent,
                 expandedContent: newContent
             });
             renderNotesList();
+            updatePublishButtonState(updatedNote);
+        } else {
+            updatePublishButtonState();
         }
 
         clearSelectionRange();
@@ -458,6 +578,7 @@ async function regenerateSelection() {
             regenerateSelectionButton.textContent = '🔁 Regenerate Selection';
         }
         handleSelectionChange();
+        updatePublishButtonState();
     }
 }
 
@@ -475,13 +596,14 @@ function saveCurrentNote() {
         ? lastExpandedText
         : (existingNote?.expandedContent || '');
 
-    notesStorage.updateNote(currentNoteId, {
+    const updatedNote = notesStorage.updateNote(currentNoteId, {
         title,
         content,
         expandedContent
     });
 
     renderNotesList();
+    updatePublishButtonState(updatedNote);
     showStatus('Note saved!', 'success');
 }
 
@@ -492,12 +614,13 @@ function autoSaveNote() {
     const title = noteTitleInput.value.trim() || 'Untitled Note';
     const content = noteInput.value;
 
-    notesStorage.updateNote(currentNoteId, {
+    const updatedNote = notesStorage.updateNote(currentNoteId, {
         title,
         content
     });
 
     renderNotesList();
+    updatePublishButtonState(updatedNote);
 }
 
 // Export current note as .txt
@@ -527,6 +650,7 @@ function deleteCurrentNote() {
 
     notesStorage.deleteNote(currentNoteId);
     currentNoteId = null;
+    updatePublishButtonState();
 
     renderNotesList();
 
@@ -772,21 +896,28 @@ function populatePublishedNotes() {
     if (!publishedNotesList) return;
 
     const notes = notesStorage.getNotesSortedByDate();
+    const publishedNotes = notes.filter(isNotePublished);
     publishedNotesList.innerHTML = '';
 
-    if (notes.length === 0) {
-        publishedNotesList.innerHTML = '<div class="published-note-empty">No published notes yet. Save or generate a note to see it here.</div>';
+    if (publishedNotes.length === 0) {
+        publishedNotesList.innerHTML = '<div class="published-note-empty">No published notes yet. Use the 📢 Publish button to add one.</div>';
         return;
     }
 
-    notes.forEach(note => {
+    publishedNotes.forEach(note => {
         const card = document.createElement('article');
         card.className = 'published-note-card';
 
         const title = escapeHtml(note.title || 'Untitled Note');
-        const updatedAt = new Date(note.updatedAt);
-        const formattedDate = isNaN(updatedAt.getTime()) ? '' : updatedAt.toLocaleString();
-        const content = (note.expandedContent && note.expandedContent.trim()) || note.content || '';
+        const publishedAt = note.publishedAt ? new Date(note.publishedAt) : null;
+        const fallbackDate = new Date(note.updatedAt);
+        const formattedDate = publishedAt && !isNaN(publishedAt.getTime())
+            ? publishedAt.toLocaleString()
+            : (!isNaN(fallbackDate.getTime()) ? fallbackDate.toLocaleString() : '');
+        const content = (note.publishedContent && note.publishedContent.trim())
+            || (note.expandedContent && note.expandedContent.trim())
+            || note.content
+            || '';
         let renderedContent = '';
 
         if (content) {
@@ -800,9 +931,11 @@ function populatePublishedNotes() {
             renderedContent = '<p style="color: var(--text-secondary);">This note does not have any content yet.</p>';
         }
 
+        const metaText = formattedDate ? `Published ${formattedDate}` : 'Published recently';
+
         card.innerHTML = `
             <h3>${title}</h3>
-            <div class="published-note-meta">Updated ${formattedDate || 'recently'}</div>
+            <div class="published-note-meta">${metaText}</div>
             <div class="published-note-content">${renderedContent}</div>
         `;
 
