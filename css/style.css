@@ -625,6 +625,11 @@ button {
     z-index: 90;
 }
 
+.published-panel-backdrop[hidden] {
+    display: none !important;
+    pointer-events: none;
+}
+
 .published-notes-panel {
     position: fixed;
     top: 0;
@@ -638,6 +643,11 @@ button {
     flex-direction: column;
     z-index: 100;
     animation: slide-in 0.3s ease;
+}
+
+.published-notes-panel[hidden] {
+    display: none !important;
+    pointer-events: none;
 }
 
 .published-notes-header {
