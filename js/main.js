@@ -260,9 +260,11 @@ async function expandWithOpenAI(noteText) {
         return data.choices[0].message.content;
     } catch (error) {
         // Handle network errors or other fetch failures
-        if (error.name === 'TypeError' && error.message.includes('fetch')) {
-            throw new Error('Network error: Unable to connect to OpenAI API. Please check your internet connection.');
+        if (error instanceof TypeError) {
+            // TypeError usually indicates network connectivity issues
+            throw new Error('Network error: Unable to connect to OpenAI API. Please check your internet connection and verify that https://api.openai.com is accessible.');
         }
+        // Re-throw API errors or other errors as-is
         throw error;
     }
 }
@@ -318,9 +320,11 @@ async function expandWithClaude(noteText) {
         return data.content[0].text;
     } catch (error) {
         // Handle network errors or other fetch failures
-        if (error.name === 'TypeError' && error.message.includes('fetch')) {
-            throw new Error('Network error: Unable to connect to Claude API. Please check your internet connection.');
+        if (error instanceof TypeError) {
+            // TypeError usually indicates network connectivity issues
+            throw new Error('Network error: Unable to connect to Claude API. Please check your internet connection and verify that https://api.anthropic.com is accessible.');
         }
+        // Re-throw API errors or other errors as-is
         throw error;
     }
 }
