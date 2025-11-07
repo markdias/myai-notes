@@ -9,6 +9,7 @@ A lightweight, privacy-focused note-taking web application that uses OpenAI's an
 - **Local Storage**: All notes are stored in your browser's localStorage - no server, no cloud
 - **Markdown Rendering**: Expanded notes are rendered with beautiful Markdown formatting
 - **Persistent Formatting**: Applied AI output keeps its Markdown structure even after reloading the page
+- **Selective Regeneration**: Highlight a saved passage to rewrite just that section without regenerating the entire note
 - **Auto-Save**: Notes are automatically saved as you type
 - **Export/Import**: Export individual notes as .txt files or all notes as JSON
 
@@ -17,6 +18,8 @@ A lightweight, privacy-focused note-taking web application that uses OpenAI's an
 - **Dark/Light Mode**: Toggle between themes, with automatic system preference detection
 - **Minimalist Design**: Clean, distraction-free interface focused on productivity
 - **Responsive**: Works on desktop and mobile devices
+- **Published Notes Drawer**: Browse fully formatted notes in a dedicated, distraction-free panel that mirrors the live output
+- **Expanded Note Toggle**: Collapse the AI output when you just want to focus on the saved version
 
 ### Customization
 - **Model Selection**: Choose from GPT-4o, GPT-4o-mini, GPT-4 Turbo, GPT-3.5 Turbo, or Claude 3.x models
@@ -93,6 +96,7 @@ A lightweight, privacy-focused note-taking web application that uses OpenAI's an
    - Wait for the AI to process your note
    - The expanded content appears on the right with Markdown formatting
    - Click "📌 Set as Note" to replace your original text with the generated version (you can always return to editing with the "✏️ Edit" button). Saved notes keep the AI-generated Markdown formatting when you revisit them later.
+   - Use the "🙈 Hide" / "👁️ Show" toggle to collapse the expanded draft after you are happy with it.
 
 3. **Save and Export**:
    - Notes are auto-saved as you type
@@ -100,12 +104,19 @@ A lightweight, privacy-focused note-taking web application that uses OpenAI's an
    - Click "📄 Export as .txt" to download the current note
    - Click "📋 Copy" to copy the expanded content
 
+### Regenerating a section
+
+1. Highlight the portion of the note you want to update. You can select text directly in the formatted view or click "✏️ Edit" to select it inside the editor.
+2. Click the "🔁 Regenerate Selection" button to ask the AI to rewrite only that passage.
+3. The replacement text is inserted immediately, preserving Markdown formatting. If the selection includes heavy formatting that cannot be mapped from the formatted preview, switch to the editor view and highlight the text there instead.
+
 ### Managing Notes
 
 - **View All Notes**: Your notes appear in the sidebar, sorted by most recent
 - **Switch Notes**: Click any note in the sidebar to view/edit it
 - **Delete Notes**: Click the 🗑️ button to delete the current note
 - **Import/Export All**: Use the Import/Export buttons in the sidebar to backup all notes
+- **Review Published Notes**: Click the 📰 button in the header to open the published notes drawer. It shows every saved note rendered with its Markdown formatting—click any card to jump straight to that note and press `Esc` or the ✖️ button to close the drawer.
 
 ### Themes
 

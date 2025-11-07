@@ -16,6 +16,9 @@
                 <button id="themeToggle" class="icon-button" title="Toggle theme">
                     <span class="theme-icon">🌙</span>
                 </button>
+                <button id="publishedNotesButton" class="icon-button" title="View published notes">
+                    <span>📰</span>
+                </button>
                 <button id="settingsButton" class="icon-button" title="Settings">
                     <span>⚙️</span>
                 </button>
@@ -93,6 +96,12 @@
                                     <button id="copyButton" class="btn-secondary btn-small" title="Copy to clipboard">
                                         📋 Copy
                                     </button>
+                                    <button id="toggleExpandedButton" class="btn-secondary btn-small" title="Hide expanded note" style="display: none;">
+                                        🙈 Hide
+                                    </button>
+                                    <button id="regenerateSelectionButton" class="btn-secondary btn-small" title="Regenerate selected section" disabled>
+                                        🔁 Regenerate Selection
+                                    </button>
                                     <button id="setNoteButton" class="btn-secondary btn-small" title="Replace the note with the generated text" style="display: none;">
                                         📌 Set as Note
                                     </button>
@@ -116,6 +125,15 @@
 
     <!-- Hidden file input for JSON import -->
     <input type="file" id="importFileInput" accept=".json" style="display: none;">
+
+    <div id="publishedPanelBackdrop" class="published-panel-backdrop" hidden></div>
+    <section id="publishedNotesPanel" class="published-notes-panel" aria-hidden="true" hidden>
+        <div class="published-notes-header">
+            <h2>Published Notes</h2>
+            <button id="closePublishedNotes" class="icon-button" title="Close published notes view">✖️</button>
+        </div>
+        <div id="publishedNotesList" class="published-notes-list"></div>
+    </section>
 
     <script src="js/storage.js"></script>
     <script src="js/theme.js"></script>
