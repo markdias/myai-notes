@@ -216,35 +216,55 @@ async function expandWithOpenAI(noteText) {
     const model = localStorage.getItem('myai_openai_model') || 'gpt-4o-mini';
     const temperature = parseFloat(localStorage.getItem('myai_temperature') || '0.7');
 
-    const response = await fetch('https://api.openai.com/v1/chat/completions', {
-        method: 'POST',
-        headers: {
-            'Authorization': `Bearer ${apiKey}`,
-            'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({
-            model: model,
-            messages: [
-                {
-                    role: 'system',
-                    content: 'You are a helpful assistant that expands short notes into detailed, well-structured text. Format your response in Markdown for better readability.'
-                },
-                {
-                    role: 'user',
-                    content: `Please expand the following note into a detailed, well-structured text:\n\n${noteText}`
+    try {
+        const response = await fetch('https://api.openai.com/v1/chat/completions', {
+            method: 'POST',
+            headers: {
+                'Authorization': `Bearer ${apiKey}`,
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                model: model,
+                messages: [
+                    {
+                        role: 'system',
+                        content: 'You are a helpful assistant that expands short notes into detailed, well-structured text. Format your response in Markdown for better readability.'
+                    },
+                    {
+                        role: 'user',
+                        content: `Please expand the following note into a detailed, well-structured text:\n\n${noteText}`
+                    }
+                ],
+                temperature: temperature
+            })
+        });
+
+        if (!response.ok) {
+            let errorMessage = `OpenAI API error: ${response.status} ${response.statusText}`;
+            try {
+                const errorData = await response.json();
+                if (errorData.error?.message) {
+                    errorMessage = errorData.error.message;
                 }
-            ],
-            temperature: temperature
-        })
-    });
+            } catch (parseError) {
+                // If JSON parsing fails, use the status-based error message
+                console.error('Failed to parse error response:', parseError);
+            }
+            throw new Error(errorMessage);
+        }
 
-    if (!response.ok) {
-        const error = await response.json();
-        throw new Error(error.error?.message || `OpenAI API error: ${response.status}`);
+        const data = await response.json();
+        if (!data.choices || !data.choices[0] || !data.choices[0].message) {
+            throw new Error('Invalid response format from OpenAI API');
+        }
+        return data.choices[0].message.content;
+    } catch (error) {
+        // Handle network errors or other fetch failures
+        if (error.name === 'TypeError' && error.message.includes('fetch')) {
+            throw new Error('Network error: Unable to connect to OpenAI API. Please check your internet connection.');
+        }
+        throw error;
     }
-
-    const data = await response.json();
-    return data.choices[0].message.content;
 }
 
 // Expand note using Claude API
@@ -253,34 +273,56 @@ async function expandWithClaude(noteText) {
     const model = localStorage.getItem('myai_claude_model') || 'claude-3-5-sonnet-20241022';
     const temperature = parseFloat(localStorage.getItem('myai_temperature') || '0.7');
 
-    const response = await fetch('https://api.anthropic.com/v1/messages', {
-        method: 'POST',
-        headers: {
-            'x-api-key': apiKey,
-            'anthropic-version': '2023-06-01',
-            'content-type': 'application/json'
-        },
-        body: JSON.stringify({
-            model: model,
-            max_tokens: 4096,
-            temperature: temperature,
-            system: 'You are a helpful assistant that expands short notes into detailed, well-structured text. Format your response in Markdown for better readability.',
-            messages: [
-                {
-                    role: 'user',
-                    content: `Please expand the following note into a detailed, well-structured text:\n\n${noteText}`
+    try {
+        const response = await fetch('https://api.anthropic.com/v1/messages', {
+            method: 'POST',
+            headers: {
+                'x-api-key': apiKey,
+                'anthropic-version': '2023-06-01',
+                'content-type': 'application/json'
+            },
+            body: JSON.stringify({
+                model: model,
+                max_tokens: 4096,
+                temperature: temperature,
+                system: 'You are a helpful assistant that expands short notes into detailed, well-structured text. Format your response in Markdown for better readability.',
+                messages: [
+                    {
+                        role: 'user',
+                        content: `Please expand the following note into a detailed, well-structured text:\n\n${noteText}`
+                    }
+                ]
+            })
+        });
+
+        if (!response.ok) {
+            let errorMessage = `Claude API error: ${response.status} ${response.statusText}`;
+            try {
+                const errorData = await response.json();
+                if (errorData.error?.message) {
+                    errorMessage = errorData.error.message;
+                } else if (errorData.message) {
+                    errorMessage = errorData.message;
                 }
-            ]
-        })
-    });
+            } catch (parseError) {
+                // If JSON parsing fails, use the status-based error message
+                console.error('Failed to parse error response:', parseError);
+            }
+            throw new Error(errorMessage);
+        }
 
-    if (!response.ok) {
-        const error = await response.json();
-        throw new Error(error.error?.message || `Claude API error: ${response.status}`);
+        const data = await response.json();
+        if (!data.content || !data.content[0] || !data.content[0].text) {
+            throw new Error('Invalid response format from Claude API');
+        }
+        return data.content[0].text;
+    } catch (error) {
+        // Handle network errors or other fetch failures
+        if (error.name === 'TypeError' && error.message.includes('fetch')) {
+            throw new Error('Network error: Unable to connect to Claude API. Please check your internet connection.');
+        }
+        throw error;
     }
-
-    const data = await response.json();
-    return data.content[0].text;
 }
 
 // Render markdown content
