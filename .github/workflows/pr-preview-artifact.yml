@@ -86,29 +86,32 @@ jobs:
               comment.body.includes('📦 Preview Build Ready')
             );
 
-            const commentBody = `## 📦 Preview Build Ready
-
-A preview build of this PR is ready for testing!
-
-**[Download Preview Build](${artifactUrl})**
-
-### How to Test:
-1. Click the link above to go to the workflow run
-2. Scroll to the bottom and download the \`pr-preview-${prNumber}\` artifact
-3. Extract the ZIP file
-4. Follow the instructions in \`PREVIEW-README.md\`
-
-### Quick Start:
-\`\`\`bash
-# After extracting the archive
-cd pr-preview-${prNumber}
-python -m http.server 8080
-# Then open http://localhost:8080
-\`\`\`
-
----
-*Build: [#${runId}](${artifactUrl})*
-*Last updated: ${new Date().toUTCString()}*`;
+            const commentLines = [
+              '## 📦 Preview Build Ready',
+              '',
+              'A preview build of this PR is ready for testing!',
+              '',
+              `**[Download Preview Build](${artifactUrl})**`,
+              '',
+              '### How to Test:',
+              '1. Click the link above to go to the workflow run',
+              `2. Scroll to the bottom and download the \`pr-preview-${prNumber}\` artifact`,
+              '3. Extract the ZIP file',
+              '4. Follow the instructions in \`PREVIEW-README.md\`',
+              '',
+              '### Quick Start:',
+              '```bash',
+              '# After extracting the archive',
+              `cd pr-preview-${prNumber}`,
+              'python -m http.server 8080',
+              '# Then open http://localhost:8080',
+              '```',
+              '',
+              '---',
+              `*Build: [#${runId}](${artifactUrl})*`,
+              `*Last updated: ${new Date().toUTCString()}*`
+            ];
+            const commentBody = commentLines.join('\n');
 
             if (botComment) {
               await github.rest.issues.updateComment({
