@@ -36,6 +36,7 @@ const closePublishedNotes = document.getElementById('closePublishedNotes');
 const publishedPanelBackdrop = document.getElementById('publishedPanelBackdrop');
 const noteBody = document.getElementById('noteBody');
 const noteFooter = document.getElementById('noteFooter');
+const workspaceContainer = document.getElementById('workspaceContainer');
 const publishedViewContainer = document.getElementById('publishedViewContainer');
 const publishedViewContent = document.getElementById('publishedViewContent');
 const publishedViewTitle = document.getElementById('publishedViewTitle');
@@ -255,6 +256,10 @@ function loadNote(noteId, options = {}) {
 function showWelcomeScreen() {
     welcomeScreen.style.display = 'flex';
     noteContent.style.display = 'none';
+    if (workspaceContainer) {
+        workspaceContainer.hidden = false;
+        workspaceContainer.removeAttribute('aria-hidden');
+    }
     currentNoteId = null;
     updatePublishButtonState();
 }
@@ -263,6 +268,10 @@ function showWelcomeScreen() {
 function showNoteEditor() {
     welcomeScreen.style.display = 'none';
     noteContent.style.display = 'flex';
+    if (workspaceContainer) {
+        workspaceContainer.hidden = false;
+        workspaceContainer.removeAttribute('aria-hidden');
+    }
     showManualNoteEditor();
     updatePublishButtonState();
 }
@@ -412,6 +421,11 @@ function showPublishedNoteView(note, content) {
 
     isPublishedViewActive = true;
 
+    if (workspaceContainer) {
+        workspaceContainer.hidden = true;
+        workspaceContainer.setAttribute('aria-hidden', 'true');
+    }
+
     if (noteBody) {
         noteBody.hidden = true;
         noteBody.setAttribute('aria-hidden', 'true');
@@ -451,6 +465,11 @@ function showPublishedNoteView(note, content) {
 function hidePublishedNoteView() {
     if (!publishedViewContainer) {
         return;
+    }
+
+    if (workspaceContainer) {
+        workspaceContainer.hidden = false;
+        workspaceContainer.removeAttribute('aria-hidden');
     }
 
     if (noteBody) {

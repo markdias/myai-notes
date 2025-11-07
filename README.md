@@ -18,7 +18,7 @@ A lightweight, privacy-focused note-taking web application that uses OpenAI's an
 - **Dark/Light Mode**: Toggle between themes, with automatic system preference detection
 - **Minimalist Design**: Clean, distraction-free interface focused on productivity
 - **Responsive**: Works on desktop and mobile devices
-- **Published Notes Drawer**: Curate selected notes into a dedicated, distraction-free panel that surfaces concise snippets and opens the full published Markdown in a dedicated reader with a back button to return to editing
+- **Published Notes Drawer**: Curate selected notes into a dedicated, distraction-free panel that surfaces concise snippets and opens the full published Markdown in a dedicated reader that temporarily replaces the sidebar and editor, with a back button to return to editing
 - **Expanded Note Toggle**: Collapse the AI output when you just want to focus on the saved version
 
 ### Customization
@@ -108,7 +108,7 @@ A lightweight, privacy-focused note-taking web application that uses OpenAI's an
 
 1. Finish writing or expanding a note so that it contains the Markdown you want to share.
 2. Click "📢 Publish Note" to add it to the Published Notes drawer. If you change the note later, the button switches to "📢 Update Published" so you can refresh the published version, or cancel and choose to unpublish it entirely.
-3. Open the 📰 Published Notes drawer to skim snippets of the notes you have explicitly published. Click any card to replace the editor with a full, read-only view of the published Markdown, then use the ⬅️ Back button to resume editing.
+3. Open the 📰 Published Notes drawer to skim snippets of the notes you have explicitly published. Click any card to replace the entire workspace (sidebar and editor) with a full, read-only view of the published Markdown, then use the ⬅️ Back button to resume editing.
 
 ### Regenerating a section
 
@@ -122,7 +122,7 @@ A lightweight, privacy-focused note-taking web application that uses OpenAI's an
 - **Switch Notes**: Click any note in the sidebar to view/edit it
 - **Delete Notes**: Click the 🗑️ button to delete the current note
 - **Import/Export All**: Use the Import/Export buttons in the sidebar to backup all notes
-- **Review Published Notes**: Click the 📰 button in the header to open the published notes drawer. Each entry shows a short snippet so you can quickly find the right note—click a card to load a full-viewport reader of the published Markdown, then tap ⬅️ Back to return to the editor. Press `Esc` or the ✖️ button to close the drawer.
+- **Review Published Notes**: Click the 📰 button in the header to open the published notes drawer. Each entry shows a short snippet so you can quickly find the right note—click a card to load a full-viewport reader of the published Markdown that temporarily hides the sidebar and editor, then tap ⬅️ Back to return to the editor. Press `Esc` or the ✖️ button to close the drawer.
 
 ### Themes
 

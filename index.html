@@ -25,7 +25,7 @@
             </div>
         </header>
 
-        <div class="main-content">
+        <div class="main-content" id="workspaceContainer">
             <!-- Sidebar -->
             <aside class="sidebar">
                 <div class="sidebar-header">
@@ -120,15 +120,15 @@
                         <div class="status-message" id="statusMessage"></div>
                     </div>
                 </div>
-                <section id="publishedViewContainer" class="published-view" hidden aria-hidden="true">
-                    <header class="published-view-header">
-                        <button id="publishedViewBackButton" class="btn-secondary btn-small">⬅️ Back</button>
-                        <h2 id="publishedViewTitle" class="published-view-title">Published Note</h2>
-                    </header>
-                    <article id="publishedViewContent" class="published-view-content expanded-note" role="region" aria-live="polite"></article>
-                </section>
             </main>
         </div>
+        <section id="publishedViewContainer" class="published-view" hidden aria-hidden="true">
+            <header class="published-view-header">
+                <button id="publishedViewBackButton" class="btn-secondary btn-small">⬅️ Back</button>
+                <h2 id="publishedViewTitle" class="published-view-title">Published Note</h2>
+            </header>
+            <article id="publishedViewContent" class="published-view-content expanded-note" role="region" aria-live="polite"></article>
+        </section>
     </div>
 
     <!-- Hidden file input for JSON import -->
