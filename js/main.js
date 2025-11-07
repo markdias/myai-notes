@@ -16,11 +16,18 @@ const saveButton = document.getElementById('saveButton');
 const exportButton = document.getElementById('exportButton');
 const deleteButton = document.getElementById('deleteButton');
 const copyButton = document.getElementById('copyButton');
+const setNoteButton = document.getElementById('setNoteButton');
+const noteEditorWrapper = document.getElementById('noteEditorWrapper');
+const noteDisplayContainer = document.getElementById('noteDisplayContainer');
+const noteDisplay = document.getElementById('noteDisplay');
+const editNoteButton = document.getElementById('editNoteButton');
 const settingsButton = document.getElementById('settingsButton');
 const statusMessage = document.getElementById('statusMessage');
 const exportAllButton = document.getElementById('exportAllButton');
 const importNotesButton = document.getElementById('importNotesButton');
 const importFileInput = document.getElementById('importFileInput');
+
+let lastExpandedText = '';
 
 // Initialize app
 document.addEventListener('DOMContentLoaded', () => {
@@ -41,6 +48,12 @@ function setupEventListeners() {
     exportButton.addEventListener('click', exportCurrentNote);
     deleteButton.addEventListener('click', deleteCurrentNote);
     copyButton.addEventListener('click', copyToClipboard);
+    if (setNoteButton) {
+        setNoteButton.addEventListener('click', applyExpandedTextToNote);
+    }
+    if (editNoteButton) {
+        editNoteButton.addEventListener('click', () => showManualNoteEditor(true));
+    }
     settingsButton.addEventListener('click', () => {
         window.location.href = 'settings.html';
     });
@@ -127,6 +140,14 @@ function loadNote(noteId) {
         renderMarkdown(note.expandedContent);
     } else {
         expandedNote.innerHTML = '';
+        updateSetNoteButtonVisibility('');
+    }
+
+    const shouldShowDisplay = Boolean(note.expandedContent && note.content && note.content.trim() === note.expandedContent.trim());
+    if (shouldShowDisplay) {
+        showGeneratedNoteDisplay(note.expandedContent);
+    } else {
+        showManualNoteEditor();
     }
 
     renderNotesList();
@@ -144,6 +165,7 @@ function showWelcomeScreen() {
 function showNoteEditor() {
     welcomeScreen.style.display = 'none';
     noteContent.style.display = 'flex';
+    showManualNoteEditor();
 }
 
 // Expand note using AI (OpenAI or Claude)
@@ -355,6 +377,67 @@ function renderMarkdown(text) {
         console.error('Error rendering markdown:', error);
         expandedNote.textContent = text;
     }
+
+    lastExpandedText = text || '';
+    updateSetNoteButtonVisibility(text);
+}
+
+function updateSetNoteButtonVisibility(text) {
+    if (!setNoteButton) return;
+
+    if (text && text.trim()) {
+        setNoteButton.style.display = 'inline-flex';
+        setNoteButton.disabled = false;
+    } else {
+        setNoteButton.style.display = 'none';
+    }
+}
+
+function showGeneratedNoteDisplay(text) {
+    if (!noteDisplayContainer || !noteEditorWrapper || !noteDisplay) return;
+
+    try {
+        noteDisplay.innerHTML = marked.parse(text);
+    } catch (error) {
+        console.error('Error rendering applied note markdown:', error);
+        noteDisplay.textContent = text;
+    }
+
+    noteEditorWrapper.style.display = 'none';
+    noteDisplayContainer.style.display = 'flex';
+}
+
+function showManualNoteEditor(focus = false) {
+    if (!noteDisplayContainer || !noteEditorWrapper) return;
+
+    noteEditorWrapper.style.display = 'flex';
+    noteDisplayContainer.style.display = 'none';
+
+    if (focus && noteInput) {
+        noteInput.focus();
+    }
+}
+
+function applyExpandedTextToNote() {
+    const textToApply = (lastExpandedText || '').trim();
+
+    if (!textToApply) {
+        showStatus('Expand a note before applying it.', 'error');
+        return;
+    }
+
+    noteInput.value = lastExpandedText;
+    showGeneratedNoteDisplay(lastExpandedText);
+
+    if (currentNoteId) {
+        notesStorage.updateNote(currentNoteId, {
+            content: lastExpandedText,
+            expandedContent: lastExpandedText
+        });
+        renderNotesList();
+    }
+
+    showStatus('Generated text applied to the note.', 'success');
 }
 
 // Save current note

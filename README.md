@@ -91,6 +91,7 @@ A lightweight, privacy-focused note-taking web application that uses OpenAI's an
    - Click the "✨ Expand with AI" button
    - Wait for the AI to process your note
    - The expanded content appears on the right with Markdown formatting
+   - Click "📌 Set as Note" to replace your original text with the generated version (you can always return to editing with the "✏️ Edit" button)
 
 3. **Save and Export**:
    - Notes are auto-saved as you type

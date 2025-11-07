@@ -247,6 +247,47 @@ body {
     flex-direction: column;
 }
 
+.note-editor-wrapper {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+}
+
+.note-display-container {
+    display: none;
+    flex-direction: column;
+    gap: 0.75rem;
+    height: 100%;
+}
+
+.note-display-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 0.5rem;
+}
+
+.note-display-title {
+    font-weight: 500;
+    color: var(--text-secondary);
+}
+
+.note-display {
+    flex: 1;
+    padding: 1rem;
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    background-color: var(--bg-secondary);
+    overflow-y: auto;
+    min-height: 200px;
+    line-height: 1.7;
+}
+
+.note-display:empty::before {
+    content: 'Generated text will appear here after it is applied.';
+    color: var(--text-tertiary);
+}
+
 .input-section label,
 .output-section label {
     font-weight: 500;
@@ -259,6 +300,11 @@ body {
     justify-content: space-between;
     align-items: center;
     margin-bottom: 0.5rem;
+}
+
+.output-actions {
+    display: flex;
+    gap: 0.5rem;
 }
 
 .note-textarea {
