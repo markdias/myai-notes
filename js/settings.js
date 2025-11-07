@@ -7,7 +7,15 @@ const toggleKeyVisibility = document.getElementById('toggleKeyVisibility');
 const saveKeyButton = document.getElementById('saveKeyButton');
 const clearKeyButton = document.getElementById('clearKeyButton');
 const keyStatus = document.getElementById('keyStatus');
-const modelSelect = document.getElementById('modelSelect');
+const claudeApiKeyInput = document.getElementById('claudeApiKeyInput');
+const toggleClaudeKeyVisibility = document.getElementById('toggleClaudeKeyVisibility');
+const saveClaudeKeyButton = document.getElementById('saveClaudeKeyButton');
+const clearClaudeKeyButton = document.getElementById('clearClaudeKeyButton');
+const claudeKeyStatus = document.getElementById('claudeKeyStatus');
+const openaiEnabled = document.getElementById('openaiEnabled');
+const claudeEnabled = document.getElementById('claudeEnabled');
+const openaiModelSelect = document.getElementById('openaiModelSelect');
+const claudeModelSelect = document.getElementById('claudeModelSelect');
 const temperatureSlider = document.getElementById('temperatureSlider');
 const temperatureValue = document.getElementById('temperatureValue');
 const saveModelButton = document.getElementById('saveModelButton');
@@ -24,9 +32,19 @@ function setupEventListeners() {
         window.location.href = 'index.html';
     });
 
+    // OpenAI API key listeners
     saveKeyButton.addEventListener('click', saveApiKey);
     clearKeyButton.addEventListener('click', clearApiKey);
     toggleKeyVisibility.addEventListener('click', togglePasswordVisibility);
+
+    // Claude API key listeners
+    saveClaudeKeyButton.addEventListener('click', saveClaudeApiKey);
+    clearClaudeKeyButton.addEventListener('click', clearClaudeApiKey);
+    toggleClaudeKeyVisibility.addEventListener('click', toggleClaudePasswordVisibility);
+
+    // Provider toggles
+    openaiEnabled.addEventListener('change', saveProviderSettings);
+    claudeEnabled.addEventListener('change', saveProviderSettings);
 
     temperatureSlider.addEventListener('input', (e) => {
         temperatureValue.textContent = e.target.value;
@@ -40,24 +58,47 @@ function setupEventListeners() {
             saveApiKey();
         }
     });
+
+    claudeApiKeyInput.addEventListener('keypress', (e) => {
+        if (e.key === 'Enter') {
+            saveClaudeApiKey();
+        }
+    });
 }
 
 // Load current settings
 function loadSettings() {
-    // Load API key (don't display it for security)
+    // Load provider toggles
+    const openaiEnabledState = localStorage.getItem('myai_openai_enabled') !== 'false';
+    const claudeEnabledState = localStorage.getItem('myai_claude_enabled') === 'true';
+    openaiEnabled.checked = openaiEnabledState;
+    claudeEnabled.checked = claudeEnabledState;
+
+    // Load OpenAI API key (don't display it for security)
     const apiKey = localStorage.getItem('myai_api_key');
     if (apiKey) {
         apiKeyInput.placeholder = '••••••••••••••••••••••••••••••••';
-        showStatus('API key is set', 'success');
+        showStatus('OpenAI API key is set', 'success');
     } else {
-        showStatus('No API key set', 'info');
+        showStatus('No OpenAI API key set', 'info');
+    }
+
+    // Load Claude API key (don't display it for security)
+    const claudeApiKey = localStorage.getItem('myai_claude_api_key');
+    if (claudeApiKey) {
+        claudeApiKeyInput.placeholder = '••••••••••••••••••••••••••••••••';
+        showClaudeStatus('Claude API key is set', 'success');
+    } else {
+        showClaudeStatus('No Claude API key set', 'info');
     }
 
     // Load model settings
-    const model = localStorage.getItem('myai_model') || 'gpt-4o-mini';
+    const openaiModel = localStorage.getItem('myai_openai_model') || 'gpt-4o-mini';
+    const claudeModel = localStorage.getItem('myai_claude_model') || 'claude-3-5-sonnet-20241022';
     const temperature = localStorage.getItem('myai_temperature') || '0.7';
 
-    modelSelect.value = model;
+    openaiModelSelect.value = openaiModel;
+    claudeModelSelect.value = claudeModel;
     temperatureSlider.value = temperature;
     temperatureValue.textContent = temperature;
 }
@@ -117,13 +158,94 @@ function togglePasswordVisibility() {
     }
 }
 
+// Save Claude API key
+function saveClaudeApiKey() {
+    const key = claudeApiKeyInput.value.trim();
+
+    if (!key) {
+        showClaudeStatus('Please enter an API key', 'error');
+        return;
+    }
+
+    // Basic validation
+    if (!key.startsWith('sk-ant-')) {
+        showClaudeStatus('Warning: Claude API key should start with "sk-ant-"', 'error');
+        return;
+    }
+
+    try {
+        localStorage.setItem('myai_claude_api_key', key);
+        claudeApiKeyInput.value = '';
+        claudeApiKeyInput.placeholder = '••••••••••••••••••••••••••••••••';
+        claudeApiKeyInput.type = 'password';
+        showClaudeStatus('Claude API key saved successfully!', 'success');
+    } catch (error) {
+        console.error('Error saving Claude API key:', error);
+        showClaudeStatus('Failed to save API key', 'error');
+    }
+}
+
+// Clear Claude API key
+function clearClaudeApiKey() {
+    if (!confirm('Are you sure you want to clear your Claude API key?')) {
+        return;
+    }
+
+    try {
+        localStorage.removeItem('myai_claude_api_key');
+        claudeApiKeyInput.value = '';
+        claudeApiKeyInput.placeholder = 'sk-ant-...';
+        showClaudeStatus('Claude API key cleared', 'info');
+    } catch (error) {
+        console.error('Error clearing Claude API key:', error);
+        showClaudeStatus('Failed to clear API key', 'error');
+    }
+}
+
+// Toggle Claude password visibility
+function toggleClaudePasswordVisibility() {
+    if (claudeApiKeyInput.type === 'password') {
+        claudeApiKeyInput.type = 'text';
+        toggleClaudeKeyVisibility.textContent = '🙈';
+    } else {
+        claudeApiKeyInput.type = 'password';
+        toggleClaudeKeyVisibility.textContent = '👁️';
+    }
+}
+
+// Save provider settings
+function saveProviderSettings() {
+    // Ensure at least one provider is enabled
+    if (!openaiEnabled.checked && !claudeEnabled.checked) {
+        alert('At least one AI provider must be enabled!');
+        // Revert the change
+        if (!openaiEnabled.checked) {
+            openaiEnabled.checked = true;
+        } else {
+            claudeEnabled.checked = true;
+        }
+        return;
+    }
+
+    try {
+        localStorage.setItem('myai_openai_enabled', openaiEnabled.checked);
+        localStorage.setItem('myai_claude_enabled', claudeEnabled.checked);
+        showStatus('Provider settings saved!', 'success');
+    } catch (error) {
+        console.error('Error saving provider settings:', error);
+        showStatus('Failed to save provider settings', 'error');
+    }
+}
+
 // Save model settings
 function saveModelSettings() {
-    const model = modelSelect.value;
+    const openaiModel = openaiModelSelect.value;
+    const claudeModel = claudeModelSelect.value;
     const temperature = temperatureSlider.value;
 
     try {
-        localStorage.setItem('myai_model', model);
+        localStorage.setItem('myai_openai_model', openaiModel);
+        localStorage.setItem('myai_claude_model', claudeModel);
         localStorage.setItem('myai_temperature', temperature);
         showStatus('Model settings saved!', 'success');
     } catch (error) {
@@ -137,4 +259,11 @@ function showStatus(message, type = 'info') {
     keyStatus.textContent = message;
     keyStatus.className = `status-indicator ${type}`;
     keyStatus.style.display = 'block';
+}
+
+// Show Claude status message
+function showClaudeStatus(message, type = 'info') {
+    claudeKeyStatus.textContent = message;
+    claudeKeyStatus.className = `status-indicator ${type}`;
+    claudeKeyStatus.style.display = 'block';
 }
