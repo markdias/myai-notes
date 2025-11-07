@@ -65,7 +65,7 @@
                         </div>
                     </div>
 
-                    <div class="note-body">
+                    <div class="note-body" id="noteBody">
                         <div class="input-section">
                             <div id="noteEditorWrapper" class="note-editor-wrapper">
                                 <label for="noteInput">Your Note:</label>
@@ -113,13 +113,20 @@
                         </div>
                     </div>
 
-                    <div class="note-footer">
+                    <div class="note-footer" id="noteFooter">
                         <button id="saveButton" class="btn-primary">💾 Save</button>
                         <button id="publishButton" class="btn-secondary">📢 Publish Note</button>
                         <button id="exportButton" class="btn-secondary">📄 Export as .txt</button>
                         <div class="status-message" id="statusMessage"></div>
                     </div>
                 </div>
+                <section id="publishedViewContainer" class="published-view" hidden aria-hidden="true">
+                    <header class="published-view-header">
+                        <button id="publishedViewBackButton" class="btn-secondary btn-small">⬅️ Back</button>
+                        <h2 id="publishedViewTitle" class="published-view-title">Published Note</h2>
+                    </header>
+                    <article id="publishedViewContent" class="published-view-content expanded-note" role="region" aria-live="polite"></article>
+                </section>
             </main>
         </div>
     </div>

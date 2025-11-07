@@ -347,6 +347,41 @@ body {
     color: var(--text-tertiary);
 }
 
+.published-view {
+    display: none;
+    flex: 1;
+    flex-direction: column;
+    padding: 2rem;
+    overflow-y: auto;
+    background-color: var(--bg-primary);
+}
+
+.published-view:not([hidden]) {
+    display: flex;
+}
+
+.published-view-header {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    margin-bottom: 1.5rem;
+}
+
+.published-view-title {
+    font-size: 1.25rem;
+    font-weight: 600;
+    color: var(--text-primary);
+}
+
+.published-view-content {
+    flex: 1;
+}
+
+.published-view-empty {
+    color: var(--text-secondary);
+    font-style: italic;
+}
+
 /* Markdown Styling */
 .expanded-note h1,
 .expanded-note h2,

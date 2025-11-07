@@ -34,6 +34,12 @@ const publishedNotesPanel = document.getElementById('publishedNotesPanel');
 const publishedNotesList = document.getElementById('publishedNotesList');
 const closePublishedNotes = document.getElementById('closePublishedNotes');
 const publishedPanelBackdrop = document.getElementById('publishedPanelBackdrop');
+const noteBody = document.getElementById('noteBody');
+const noteFooter = document.getElementById('noteFooter');
+const publishedViewContainer = document.getElementById('publishedViewContainer');
+const publishedViewContent = document.getElementById('publishedViewContent');
+const publishedViewTitle = document.getElementById('publishedViewTitle');
+const publishedViewBackButton = document.getElementById('publishedViewBackButton');
 
 const expandButtonText = expandButton?.querySelector('.button-text');
 const expandButtonSpinner = expandButton?.querySelector('.spinner');
@@ -42,6 +48,7 @@ let lastExpandedText = '';
 let isRegenerating = false;
 let isExpandedHidden = false;
 let lastFocusedElementBeforePanel = null;
+let isPublishedViewActive = false;
 
 // Initialize app
 document.addEventListener('DOMContentLoaded', () => {
@@ -88,6 +95,9 @@ function setupEventListeners() {
     }
     if (publishedPanelBackdrop) {
         publishedPanelBackdrop.addEventListener('click', closePublishedNotesPanel);
+    }
+    if (publishedViewBackButton) {
+        publishedViewBackButton.addEventListener('click', exitPublishedNoteView);
     }
     exportAllButton.addEventListener('click', exportAllNotes);
     importNotesButton.addEventListener('click', () => {
@@ -201,34 +211,38 @@ function loadNote(noteId, options = {}) {
     noteTitleInput.value = note.title;
     noteInput.value = note.content;
 
-    const publishedSource = showPublished
-        ? (note.publishedContent && note.publishedContent.trim())
-            || (note.expandedContent && note.expandedContent.trim())
-            || (note.content && note.content.trim())
-            || ''
-        : '';
-    const expandedSource = publishedSource
+    const publishedSource = (note.publishedContent && note.publishedContent.trim())
         || (note.expandedContent && note.expandedContent.trim())
+        || (note.content && note.content.trim())
         || '';
+    const expandedSource = (note.expandedContent && note.expandedContent.trim()) || '';
 
-    if (expandedSource) {
-        renderMarkdown(expandedSource);
+    if (showPublished) {
+        const contentToRender = publishedSource || expandedSource;
+        renderMarkdown(contentToRender);
+        showPublishedNoteView(note, contentToRender);
     } else {
-        expandedNote.innerHTML = '';
-        lastExpandedText = '';
-        updateSetNoteButtonVisibility('');
-        updateToggleExpandedButtonVisibility('');
-    }
+        hidePublishedNoteView();
 
-    const shouldShowDisplay = !showPublished && Boolean(
-        note.expandedContent &&
-        note.content &&
-        note.content.trim() === note.expandedContent.trim()
-    );
-    if (shouldShowDisplay) {
-        showGeneratedNoteDisplay(note.expandedContent);
-    } else {
-        showManualNoteEditor();
+        if (expandedSource) {
+            renderMarkdown(expandedSource);
+        } else {
+            expandedNote.innerHTML = '';
+            lastExpandedText = '';
+            updateSetNoteButtonVisibility('');
+            updateToggleExpandedButtonVisibility('');
+        }
+
+        const shouldShowDisplay = Boolean(
+            note.expandedContent &&
+            note.content &&
+            note.content.trim() === note.expandedContent.trim()
+        );
+        if (shouldShowDisplay) {
+            showGeneratedNoteDisplay(note.expandedContent);
+        } else {
+            showManualNoteEditor();
+        }
     }
 
     renderNotesList();
@@ -389,6 +403,85 @@ function showManualNoteEditor(focus = false) {
 
     handleSelectionChange();
     updatePublishButtonState();
+}
+
+function showPublishedNoteView(note, content) {
+    if (!publishedViewContainer) {
+        return;
+    }
+
+    isPublishedViewActive = true;
+
+    if (noteBody) {
+        noteBody.hidden = true;
+        noteBody.setAttribute('aria-hidden', 'true');
+    }
+    if (noteFooter) {
+        noteFooter.hidden = true;
+        noteFooter.setAttribute('aria-hidden', 'true');
+    }
+
+    const safeTitle = (note?.title && note.title.trim()) ? note.title.trim() : 'Untitled Note';
+    if (publishedViewTitle) {
+        publishedViewTitle.textContent = safeTitle;
+    }
+
+    if (publishedViewContent) {
+        const textToRender = (content && content.trim()) || '';
+        if (textToRender) {
+            try {
+                publishedViewContent.innerHTML = marked.parse(textToRender);
+            } catch (error) {
+                console.error('Error rendering published markdown:', error);
+                publishedViewContent.textContent = textToRender;
+            }
+        } else {
+            publishedViewContent.innerHTML = '<p class="published-view-empty">This note has not been published yet.</p>';
+        }
+    }
+
+    publishedViewContainer.hidden = false;
+    publishedViewContainer.setAttribute('aria-hidden', 'false');
+
+    if (publishedViewBackButton) {
+        publishedViewBackButton.focus();
+    }
+}
+
+function hidePublishedNoteView() {
+    if (!publishedViewContainer) {
+        return;
+    }
+
+    if (noteBody) {
+        noteBody.hidden = false;
+        noteBody.removeAttribute('aria-hidden');
+    }
+    if (noteFooter) {
+        noteFooter.hidden = false;
+        noteFooter.removeAttribute('aria-hidden');
+    }
+
+    publishedViewContainer.hidden = true;
+    publishedViewContainer.setAttribute('aria-hidden', 'true');
+
+    if (publishedViewContent) {
+        publishedViewContent.innerHTML = '';
+    }
+
+    isPublishedViewActive = false;
+}
+
+function exitPublishedNoteView() {
+    if (!isPublishedViewActive) {
+        return;
+    }
+
+    hidePublishedNoteView();
+
+    if (currentNoteId) {
+        loadNote(currentNoteId, { showPublished: false });
+    }
 }
 
 function applyExpandedTextToNote() {
