@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MyAI Notes</title>
+    <link rel="stylesheet" href="css/style.css">
+    <script src="https://cdn.jsdelivr.net/npm/marked@9.1.6/marked.min.js"></script>
+</head>
+<body>
+    <div class="app-container">
+        <!-- Header -->
+        <header class="app-header">
+            <h1>MyAI Notes</h1>
+            <div class="header-actions">
+                <button id="themeToggle" class="icon-button" title="Toggle theme">
+                    <span class="theme-icon">🌙</span>
+                </button>
+                <button id="settingsButton" class="icon-button" title="Settings">
+                    <span>⚙️</span>
+                </button>
+            </div>
+        </header>
+
+        <div class="main-content">
+            <!-- Sidebar -->
+            <aside class="sidebar">
+                <div class="sidebar-header">
+                    <button id="newNoteButton" class="btn-primary">+ New Note</button>
+                </div>
+                <div class="sidebar-actions">
+                    <button id="importNotesButton" class="btn-secondary" title="Import notes from JSON">
+                        📥 Import
+                    </button>
+                    <button id="exportAllButton" class="btn-secondary" title="Export all notes as JSON">
+                        📤 Export All
+                    </button>
+                </div>
+                <div class="notes-list" id="notesList">
+                    <!-- Notes will be dynamically loaded here -->
+                </div>
+            </aside>
+
+            <!-- Note Editor -->
+            <main class="note-editor">
+                <div class="welcome-screen" id="welcomeScreen">
+                    <h2>Welcome to MyAI Notes</h2>
+                    <p>Create a new note to get started, or select an existing note from the sidebar.</p>
+                    <p>Don't forget to add your OpenAI API key in Settings!</p>
+                </div>
+
+                <div class="note-content" id="noteContent" style="display: none;">
+                    <div class="note-header">
+                        <input
+                            type="text"
+                            id="noteTitle"
+                            class="note-title-input"
+                            placeholder="Untitled Note"
+                        >
+                        <div class="note-actions">
+                            <button id="deleteButton" class="btn-danger" title="Delete note">🗑️</button>
+                        </div>
+                    </div>
+
+                    <div class="note-body">
+                        <div class="input-section">
+                            <label for="noteInput">Your Note:</label>
+                            <textarea
+                                id="noteInput"
+                                class="note-textarea"
+                                placeholder="Write a short note here..."
+                                rows="8"
+                            ></textarea>
+                            <button id="expandButton" class="btn-primary btn-expand">
+                                <span class="button-text">✨ Expand with AI</span>
+                                <span class="spinner" style="display: none;">⏳</span>
+                            </button>
+                        </div>
+
+                        <div class="output-section">
+                            <div class="output-header">
+                                <label>Expanded Note:</label>
+                                <button id="copyButton" class="btn-secondary btn-small" title="Copy to clipboard">
+                                    📋 Copy
+                                </button>
+                            </div>
+                            <div id="expandedNote" class="expanded-note">
+                                <!-- Expanded content will appear here -->
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="note-footer">
+                        <button id="saveButton" class="btn-primary">💾 Save</button>
+                        <button id="exportButton" class="btn-secondary">📄 Export as .txt</button>
+                        <div class="status-message" id="statusMessage"></div>
+                    </div>
+                </div>
+            </main>
+        </div>
+    </div>
+
+    <!-- Hidden file input for JSON import -->
+    <input type="file" id="importFileInput" accept=".json" style="display: none;">
+
+    <script src="js/storage.js"></script>
+    <script src="js/theme.js"></script>
+    <script src="js/main.js"></script>
+</body>
+</html>
