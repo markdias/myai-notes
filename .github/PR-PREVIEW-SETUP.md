@@ -1,6 +1,6 @@
 # PR Preview Deployment Setup
 
-This repository includes two options for PR preview deployments:
+This repository includes multiple options for PR preview deployments:
 
 ## Option 1: Downloadable Artifact (Active by Default)
 
@@ -28,13 +28,47 @@ This workflow uploads the site as a downloadable artifact when a PR is opened. T
 
 ---
 
-## Option 2: Live Preview with Surge.sh (Optional)
+## Option 2: GitHub Pages PR Previews (New Default)
+
+**File:** `.github/workflows/pr-preview-pages.yml`
+
+**Status:** ✅ Ready to use (no secrets required)
+
+This workflow publishes each pull request to a unique folder on the existing GitHub Pages site
+(e.g., `https://<owner>.github.io/myai-notes/pr/123/`). Preview directories are cleaned up
+automatically when the PR is closed.
+
+### How it works:
+1. Triggered by `pull_request_target` events
+2. Checks out the PR branch and copies the static site into `pr/<PR_NUMBER>/`
+3. Commits the preview directory to the `gh-pages` branch
+4. Comments on the PR with a direct link to the preview
+5. Removes the folder and leaves a comment when the PR is closed
+
+### Notes:
+- Works alongside the standard `deploy.yml` workflow. The deployment job now preserves the `pr/`
+  directory so live previews survive the main site updates.
+- Requires GitHub Pages to already be set up for the repository (handled by `deploy.yml`).
+- Uses the default `GITHUB_TOKEN`; no additional secrets are necessary.
+
+**Pros:**
+- Fully hosted preview using the existing Pages site
+- Automatic PR comments and cleanup
+- No external dependencies or credentials
+
+**Cons:**
+- Preview directories live within the public Pages site (discoverable if someone knows the URL)
+- Updates rely on write access to the repository's `gh-pages` branch (works for collaborators; fork
+  PRs are still processed safely via `pull_request_target`)
+
+## Option 3: Live Preview with Surge.sh (Optional)
 
 **File:** `.github/workflows/pr-preview.yml`
 
-**Status:** ⚠️ Requires setup
+**Status:** ⚠️ Requires setup (workflow is shipped as `.disabled`)
 
-This workflow deploys to a live URL using Surge.sh (e.g., `myai-notes-pr-123.surge.sh`)
+This workflow deploys to a live URL using Surge.sh (e.g., `myai-notes-pr-123.surge.sh`). Enable it by
+renaming `pr-preview.yml.disabled` to `pr-preview.yml` after completing the setup below.
 
 ### Setup Instructions:
 
@@ -91,14 +125,18 @@ This workflow deploys to a live URL using Surge.sh (e.g., `myai-notes-pr-123.sur
 - Keep `pr-preview-artifact.yml` enabled
 - Delete or disable `pr-preview.yml`
 
+### To use GitHub Pages Previews only:
+- Keep `pr-preview-pages.yml` enabled (default)
+- Disable `pr-preview-artifact.yml` if you no longer want the downloadable ZIP
+
 ### To use Live Surge Previews:
 1. Complete the Surge setup above
-2. Rename `pr-preview-artifact.yml` to `pr-preview-artifact.yml.disabled`
-3. Keep `pr-preview.yml` active
+2. Rename `pr-preview.yml.disabled` to `pr-preview.yml`
+3. Disable other preview workflows if you only want Surge URLs
 
-### To use both:
-- Keep both workflows enabled
-- You'll get both a live URL and a downloadable artifact
+### To use multiple preview types:
+- Enable any combination of the workflows (artifact, GitHub Pages, Surge)
+- Each workflow will comment separately with its instructions
 
 ---
 

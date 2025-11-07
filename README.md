@@ -221,6 +221,14 @@ Check [OpenAI Pricing](https://openai.com/api/pricing/) for current rates.
 
 ## Development
 
+### Pull Request Preview Environments
+
+- Every open pull request automatically deploys a preview to the GitHub Pages site under
+  `https://<your-username>.github.io/myai-notes/pr/<PR_NUMBER>/`.
+- The PR bot comments with the exact link and updates it whenever new commits are pushed.
+- Previews are cleaned up automatically when the pull request is closed.
+- If you prefer downloadable archives instead, keep the `PR Preview (Downloadable)` workflow enabled.
+
 ### Local Development
 ```bash
 # Clone the repository
