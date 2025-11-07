@@ -218,11 +218,14 @@ function saveProviderSettings() {
     // Ensure at least one provider is enabled
     if (!openaiEnabled.checked && !claudeEnabled.checked) {
         alert('At least one AI provider must be enabled!');
-        // Revert the change
-        if (!openaiEnabled.checked) {
-            openaiEnabled.checked = true;
-        } else {
+        // Restore the previously enabled provider
+        const previousOpenAI = localStorage.getItem('myai_openai_enabled') !== 'false';
+        const previousClaude = localStorage.getItem('myai_claude_enabled') === 'true';
+
+        if (previousClaude) {
             claudeEnabled.checked = true;
+        } else {
+            openaiEnabled.checked = true;
         }
         return;
     }
