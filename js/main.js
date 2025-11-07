@@ -189,7 +189,8 @@ function createNewNote() {
 }
 
 // Load a note
-function loadNote(noteId) {
+function loadNote(noteId, options = {}) {
+    const { showPublished = false } = options;
     const note = notesStorage.getNoteById(noteId);
     if (!note) return;
 
@@ -200,8 +201,18 @@ function loadNote(noteId) {
     noteTitleInput.value = note.title;
     noteInput.value = note.content;
 
-    if (note.expandedContent) {
-        renderMarkdown(note.expandedContent);
+    const publishedSource = showPublished
+        ? (note.publishedContent && note.publishedContent.trim())
+            || (note.expandedContent && note.expandedContent.trim())
+            || (note.content && note.content.trim())
+            || ''
+        : '';
+    const expandedSource = publishedSource
+        || (note.expandedContent && note.expandedContent.trim())
+        || '';
+
+    if (expandedSource) {
+        renderMarkdown(expandedSource);
     } else {
         expandedNote.innerHTML = '';
         lastExpandedText = '';
@@ -209,7 +220,11 @@ function loadNote(noteId) {
         updateToggleExpandedButtonVisibility('');
     }
 
-    const shouldShowDisplay = Boolean(note.expandedContent && note.content && note.content.trim() === note.expandedContent.trim());
+    const shouldShowDisplay = !showPublished && Boolean(
+        note.expandedContent &&
+        note.content &&
+        note.content.trim() === note.expandedContent.trim()
+    );
     if (shouldShowDisplay) {
         showGeneratedNoteDisplay(note.expandedContent);
     } else {
@@ -918,30 +933,19 @@ function populatePublishedNotes() {
             || (note.expandedContent && note.expandedContent.trim())
             || note.content
             || '';
-        let renderedContent = '';
-
-        if (content) {
-            try {
-                renderedContent = marked.parse(content);
-            } catch (error) {
-                console.error('Error rendering published note markdown:', error);
-                renderedContent = `<pre>${escapeHtml(content)}</pre>`;
-            }
-        } else {
-            renderedContent = '<p style="color: var(--text-secondary);">This note does not have any content yet.</p>';
-        }
+        const snippet = getMarkdownSnippet(content);
 
         const metaText = formattedDate ? `Published ${formattedDate}` : 'Published recently';
 
         card.innerHTML = `
             <h3>${title}</h3>
             <div class="published-note-meta">${metaText}</div>
-            <div class="published-note-content">${renderedContent}</div>
+            <p class="published-note-snippet">${escapeHtml(snippet || 'No published content available yet.')}</p>
         `;
 
         card.addEventListener('click', () => {
             closePublishedNotesPanel();
-            loadNote(note.id);
+            loadNote(note.id, { showPublished: true });
         });
 
         publishedNotesList.appendChild(card);
@@ -1130,4 +1134,28 @@ function escapeHtml(text) {
     const div = document.createElement('div');
     div.textContent = text;
     return div.innerHTML;
+}
+
+function getMarkdownSnippet(markdown, maxLength = 220) {
+    if (!markdown) {
+        return '';
+    }
+
+    let text = '';
+    try {
+        const tempDiv = document.createElement('div');
+        tempDiv.innerHTML = marked.parse(markdown);
+        text = tempDiv.textContent || tempDiv.innerText || '';
+    } catch (error) {
+        console.error('Error parsing markdown for snippet:', error);
+        text = markdown;
+    }
+
+    text = text.replace(/\s+/g, ' ').trim();
+
+    if (text.length <= maxLength) {
+        return text;
+    }
+
+    return text.slice(0, maxLength).trimEnd() + '…';
 }
